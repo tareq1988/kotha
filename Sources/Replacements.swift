@@ -10,7 +10,7 @@ final class VocabularyStore: ObservableObject {
         didSet { if !loading { save() } }
     }
 
-    private let url = AppPaths.support.appendingPathComponent("vocabulary.json")
+    private let store = JSONStore<[String]>("vocabulary.json")
     private var loading = false
 
     init() { load() }
@@ -30,17 +30,10 @@ final class VocabularyStore: ObservableObject {
     private func load() {
         loading = true
         defer { loading = false }
-        if let data = try? Data(contentsOf: url),
-           let decoded = try? JSONDecoder().decode([String].self, from: data) {
-            terms = decoded
-        } else {
-            terms = ["Laravel", "FlyWP", "FlyCommerce", "Dokan", "FlySend", "FlyCRM", "weDevs"]
-        }
+        terms = store.load() ?? ["Laravel", "FlyWP", "FlyCommerce", "Dokan", "FlySend", "FlyCRM", "weDevs"]
     }
 
-    private func save() {
-        if let data = try? JSONEncoder().encode(terms) { try? data.write(to: url) }
-    }
+    private func save() { store.save(terms) }
 }
 
 enum TextProcessor {

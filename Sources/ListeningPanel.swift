@@ -47,7 +47,9 @@ final class ListeningPanel {
             ctx.duration = 0.2
             panel.animator().alphaValue = 0
         }, completionHandler: { [weak self] in
-            if self?.visible == false { panel.orderOut(nil) }
+            MainActor.assumeIsolated {
+                if self?.visible == false { panel.orderOut(nil) }
+            }
         })
     }
 

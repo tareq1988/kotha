@@ -31,14 +31,14 @@ final class HistoryStore: ObservableObject {
     @Published private(set) var entries: [Entry] = []
     @Published private(set) var stats = Stats()
 
-    private let url = AppPaths.support.appendingPathComponent("history.json")
-    private let statsURL = AppPaths.support.appendingPathComponent("stats.json")
+    private let entriesStore = JSONStore<[Entry]>("history.json")
+    private let statsStore = JSONStore<Stats>("stats.json")
     private let limit = 1000
 
     init() { load() }
 
     static func wordCount(_ text: String) -> Int {
-        text.split { $0.isWhitespace || $0.isNewline }.count
+        text.split(whereSeparator: \.isWhitespace).count
     }
 
     func add(text: String, original: String?, language: String) {
@@ -79,13 +79,9 @@ final class HistoryStore: ObservableObject {
     }
 
     private func load() {
-        if let data = try? Data(contentsOf: url),
-           let decoded = try? JSONDecoder().decode([Entry].self, from: data) {
-            entries = decoded
-        }
-        if let data = try? Data(contentsOf: statsURL),
-           let decoded = try? JSONDecoder().decode(Stats.self, from: data) {
-            stats = decoded
+        entries = entriesStore.load() ?? []
+        if let saved = statsStore.load() {
+            stats = saved
         } else if !entries.isEmpty {
             // First run with the stats feature: seed from whatever history we already have.
             seedStatsFromHistory()
@@ -106,11 +102,6 @@ final class HistoryStore: ObservableObject {
         stats = seeded
     }
 
-    private func save() {
-        if let data = try? JSONEncoder().encode(entries) { try? data.write(to: url) }
-    }
-
-    private func saveStats() {
-        if let data = try? JSONEncoder().encode(stats) { try? data.write(to: statsURL) }
-    }
+    private func save() { entriesStore.save(entries) }
+    private func saveStats() { statsStore.save(stats) }
 }

@@ -8,17 +8,10 @@ import Foundation
 final class SecretStore {
     static let shared = SecretStore()
 
-    private let url = AppPaths.support.appendingPathComponent("keys.json")
+    private let store = JSONStore<[String: String]>("keys.json", ownerOnly: true)
     private var cache: [String: String]
 
-    init() {
-        if let data = try? Data(contentsOf: url),
-           let dict = try? JSONDecoder().decode([String: String].self, from: data) {
-            cache = dict
-        } else {
-            cache = [:]
-        }
-    }
+    init() { cache = store.load() ?? [:] }
 
     func key(for account: String) -> String? {
         let value = cache[account]
@@ -29,12 +22,6 @@ final class SecretStore {
 
     func setKey(_ value: String?, for account: String) {
         if let value, !value.isEmpty { cache[account] = value } else { cache[account] = nil }
-        save()
-    }
-
-    private func save() {
-        guard let data = try? JSONEncoder().encode(cache) else { return }
-        try? data.write(to: url, options: [.atomic])
-        try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+        store.save(cache)
     }
 }

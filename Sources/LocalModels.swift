@@ -69,12 +69,11 @@ enum ModelCatalog {
 
 enum ModelStorage {
     /// Kotha-owned models directory: ~/Library/Application Support/Kotha/Models
-    static var root: URL {
-        let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        let dir = base.appendingPathComponent("Kotha/Models", isDirectory: true)
+    static let root: URL = {
+        let dir = AppPaths.support.appendingPathComponent("Models", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
-    }
+    }()
 }
 
 // MARK: - Engine abstraction

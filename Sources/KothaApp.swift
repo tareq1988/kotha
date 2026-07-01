@@ -31,4 +31,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         AppState.shared.start()
     }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        flushPendingWrites()   // ensure background JSON writes land before we exit
+    }
 }
