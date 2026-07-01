@@ -10,6 +10,8 @@ app is focused.
 It lives in the menu bar (no Dock icon) and shows a small HUD while recording,
 transcribing, and refining.
 
+![Kotha's Overview window — dictation stats in a sidebar app](docs/screenshot-1.png)
+
 ## Transcription models
 
 Each language is assigned a model in *Settings*. Available engines:
@@ -80,21 +82,17 @@ because the code signature changes.
 
 ## How it works
 
-| Piece | File |
-|-------|------|
-| Global right-⌘ / right-⌥ hold detection (CGEventTap) | `Sources/HotkeyMonitor.swift` |
-| Activation modes + orchestration / state | `Sources/AppState.swift` |
-| Mic capture → 16 kHz mono Float | `Sources/AudioRecorder.swift` |
-| Model catalog + local engines (Parakeet / Whisper) | `Sources/LocalModels.swift` |
-| Model assignment, download, readiness | `Sources/ModelManager.swift` |
-| Apple on-device speech | `Sources/AppleSpeechEngine.swift` |
-| Bangla (Soniox async REST) | `Sources/SonioxTranscriber.swift` |
-| OpenAI transcription | `Sources/OpenAITranscriber.swift` |
-| AI vocabulary cleanup | `Sources/AICleanup.swift`, `CleanupManager.swift`, `MLXCleanupEngine.swift` |
-| Known-term vocabulary | `Sources/Replacements.swift` |
-| API-key storage | `Sources/SecretStore.swift` |
-| Paste into focused app | `Sources/TextInserter.swift` |
-| Menu bar / Settings / HUD / History | `Sources/MenuView.swift`, `SettingsView.swift`, `ListeningPanel.swift`, `HistoryView.swift` |
+Sources are grouped by responsibility:
+
+| Area | Folder | What's there |
+|------|--------|--------------|
+| App entry | `Sources/App/` | `KothaApp` (scenes, `AppDelegate`), `Info.plist`, entitlements, `Assets.xcassets` |
+| Capture & orchestration | `Sources/Core/` | `AppState` (activation modes, pipeline), `AudioRecorder` (→ 16 kHz mono), `WAV` |
+| Transcription | `Sources/Transcription/` | model catalog + `ModelManager`/`DownloadManager`, Parakeet/Whisper/`AppleSpeechEngine`, Soniox & OpenAI |
+| Vocabulary cleanup | `Sources/Cleanup/` | `CleanupManager`, `MLXCleanupEngine`, `AICleanup`, known-term `VocabularyStore` |
+| Persistence | `Sources/Data/` | `JSONStore` + `AppPaths`, `SecretStore`, `HistoryStore` (stats), `Pricing` |
+| OS integration | `Sources/System/` | `HotkeyMonitor` (CGEventTap), `TextInserter` (paste), permissions, Dock policy, login item |
+| UI | `Sources/UI/` | `MainView` (sidebar), `OverviewView`, `HistoryView`, `SettingsView`, `MenuView`, `ListeningPanel` (HUD) |
 
 ## Notes
 
