@@ -178,25 +178,14 @@ private struct LocalModelRow: View {
                         AppleSpeechEngine.requestAuth { models.refresh() }
                     }
                 }
-            } else if models.busyID == model.id {
-                if let fraction = models.progress[model.id] {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        ProgressView(value: fraction).frame(width: 110)
-                        Text("\(Int(fraction * 100))%")
-                            .font(.caption2).foregroundStyle(.secondary)
-                            .monospacedDigit()
-                    }
-                } else {
-                    ProgressView().controlSize(.small)
-                }
-            } else if models.isDownloaded(model.id) {
-                Button(role: .destructive) { models.delete(model.id) } label: {
-                    Image(systemName: "trash")
-                }
-                .help("Delete download")
             } else {
-                Button("Download") { models.download(model.id) }
-                    .disabled(models.busyID != nil)
+                DownloadControl(
+                    isBusy: models.busyID == model.id,
+                    fraction: models.progress[model.id],
+                    isDownloaded: models.isDownloaded(model.id),
+                    disabled: models.busyID != nil,
+                    onDownload: { models.download(model.id) },
+                    onDelete: { models.delete(model.id) })
             }
         }
         .padding(.vertical, 2)
@@ -217,24 +206,13 @@ private struct CleanupModelRow: View {
                     .font(.caption2).foregroundStyle(.secondary)
             }
             Spacer()
-            if cleanup.busyID == model.id {
-                if let fraction = cleanup.progress[model.id] {
-                    VStack(alignment: .trailing, spacing: 2) {
-                        ProgressView(value: fraction).frame(width: 100)
-                        Text("\(Int(fraction * 100))%").font(.caption2).foregroundStyle(.secondary).monospacedDigit()
-                    }
-                } else {
-                    ProgressView().controlSize(.small)
-                }
-            } else if cleanup.isDownloaded(model.id) {
-                Button(role: .destructive) { cleanup.delete(model.id) } label: {
-                    Image(systemName: "trash")
-                }
-                .help("Delete download")
-            } else {
-                Button("Download") { cleanup.download(model.id) }
-                    .disabled(cleanup.busyID != nil)
-            }
+            DownloadControl(
+                isBusy: cleanup.busyID == model.id,
+                fraction: cleanup.progress[model.id],
+                isDownloaded: cleanup.isDownloaded(model.id),
+                disabled: cleanup.busyID != nil,
+                onDownload: { cleanup.download(model.id) },
+                onDelete: { cleanup.delete(model.id) })
         }
         .padding(.leading, 8)
     }

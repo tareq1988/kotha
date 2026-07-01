@@ -16,7 +16,7 @@ struct CleanupModelInfo: Identifiable {
 }
 
 @MainActor
-final class CleanupManager: ObservableObject {
+final class CleanupManager: DownloadManager {
     static let shared = CleanupManager()
 
     let catalog: [CleanupModelInfo] = [
@@ -39,14 +39,12 @@ final class CleanupManager: ObservableObject {
     ]
 
     @Published var selectedID: String { didSet { UserDefaults.standard.set(selectedID, forKey: "cleanupModelID") } }
-    @Published private(set) var downloadedIDs: Set<String> = []
-    @Published private(set) var busyID: String?
-    @Published private(set) var progress: [String: Double] = [:]
 
     private var engines: [String: MLXCleanupEngine] = [:]
 
-    init() {
+    override init() {
         selectedID = UserDefaults.standard.string(forKey: "cleanupModelID") ?? "apple"
+        super.init()
         refresh()
     }
 
@@ -61,14 +59,12 @@ final class CleanupManager: ObservableObject {
     func info(_ id: String) -> CleanupModelInfo? { catalog.first { $0.id == id } }
     var selectedInfo: CleanupModelInfo { info(selectedID) ?? catalog[0] }
 
-    func refresh() {
-        downloadedIDs = Set(catalog.filter { info in
+    override func scanDownloaded() -> Set<String> {
+        Set(catalog.filter { info in
             if case .mlx = info.provider { return engine(for: info)?.isDownloaded == true }
             return false
         }.map(\.id))
     }
-
-    func isDownloaded(_ id: String) -> Bool { downloadedIDs.contains(id) }
 
     func isReady(_ info: CleanupModelInfo) -> Bool {
         switch info.provider {
@@ -80,31 +76,15 @@ final class CleanupManager: ObservableObject {
     var selectedIsReady: Bool { isReady(selectedInfo) }
 
     func download(_ id: String) {
-        guard busyID == nil, let info = info(id), let engine = engine(for: info) else { return }
-        busyID = id
-        progress[id] = 0
-        Task {
-            do {
-                try await engine.download { [weak self] fraction in
-                    Task { @MainActor in self?.progress[id] = fraction }
-                }
-            } catch {
-                NSLog("Kotha: MLX download \(id) failed: \(error.localizedDescription)")
-            }
-            progress[id] = nil
-            busyID = nil
-            refresh()
+        guard let info = info(id), let engine = engine(for: info) else { return }
+        runDownload(id) { report in
+            try await engine.download(progress: report)
         }
     }
 
     func delete(_ id: String) {
-        guard busyID == nil, let info = info(id), let engine = engine(for: info) else { return }
-        busyID = id
-        Task {
-            try? engine.delete()
-            busyID = nil
-            refresh()
-        }
+        guard let info = info(id), let engine = engine(for: info) else { return }
+        runDelete(id) { try engine.delete() }
     }
 
     func correct(_ text: String, terms: [String]) async throws -> String {

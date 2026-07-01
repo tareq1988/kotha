@@ -1,7 +1,7 @@
 import SwiftUI
 
 @MainActor
-final class ModelManager: ObservableObject {
+final class ModelManager: DownloadManager {
     static let shared = ModelManager()
 
     let catalog = ModelCatalog.all
@@ -10,9 +10,6 @@ final class ModelManager: ObservableObject {
     @Published var englishID: String { didSet { persist() } }
     @Published var banglaID: String  { didSet { persist() } }
 
-    @Published private(set) var downloadedIDs: Set<String> = []
-    @Published private(set) var busyID: String?          // local model downloading/deleting
-    @Published private(set) var progress: [String: Double] = [:]   // id → 0...1 while downloading
     /// Bumped whenever an online key changes, so views recompute readiness.
     @Published private(set) var keysRevision = 0
 
@@ -20,9 +17,10 @@ final class ModelManager: ObservableObject {
     private let soniox = SonioxTranscriber()
     private let openai = OpenAITranscriber()
 
-    init() {
+    override init() {
         englishID = UserDefaults.standard.string(forKey: "englishModelID") ?? "parakeet-v3"
         banglaID  = UserDefaults.standard.string(forKey: "banglaModelID")  ?? "soniox"
+        super.init()
         refresh()
     }
 
@@ -58,37 +56,19 @@ final class ModelManager: ObservableObject {
         return engine
     }
 
-    func refresh() {
-        downloadedIDs = Set(ModelCatalog.downloadable.map(\.id).filter { localEngine($0).isDownloaded })
+    override func scanDownloaded() -> Set<String> {
+        Set(ModelCatalog.downloadable.map(\.id).filter { localEngine($0).isDownloaded })
     }
 
-    func isDownloaded(_ id: String) -> Bool { downloadedIDs.contains(id) }
-
     func download(_ id: String) {
-        guard busyID == nil else { return }
-        busyID = id
-        progress[id] = 0
-        Task {
-            do {
-                try await localEngine(id).download { [weak self] fraction in
-                    Task { @MainActor in self?.progress[id] = fraction }
-                }
-            } catch {
-                NSLog("Kotha: download \(id) failed: \(error.localizedDescription)")
-            }
-            progress[id] = nil
-            busyID = nil
-            refresh()
+        runDownload(id) { [weak self] report in
+            try await self?.localEngine(id).download(progress: report)
         }
     }
 
     func delete(_ id: String) {
-        guard busyID == nil else { return }
-        busyID = id
-        Task {
-            try? localEngine(id).delete()
-            busyID = nil
-            refresh()
+        runDelete(id) { [weak self] in
+            try self?.localEngine(id).delete()
         }
     }
 

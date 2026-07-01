@@ -53,6 +53,38 @@ struct LabeledSection<Content: View>: View {
     }
 }
 
+/// Trailing control for a downloadable model row: progress while busy, a delete
+/// button once present, otherwise a Download button. Shared by every model list.
+struct DownloadControl: View {
+    let isBusy: Bool          // this row's id is the one in flight
+    let fraction: Double?     // download progress for this id (nil = indeterminate)
+    let isDownloaded: Bool
+    let disabled: Bool        // another download is in progress
+    let onDownload: () -> Void
+    let onDelete: () -> Void
+
+    var body: some View {
+        if isBusy {
+            if let fraction {
+                VStack(alignment: .trailing, spacing: 2) {
+                    ProgressView(value: fraction).frame(width: 110)
+                    Text("\(Int(fraction * 100))%")
+                        .font(.caption2).foregroundStyle(.secondary).monospacedDigit()
+                }
+            } else {
+                ProgressView().controlSize(.small)
+            }
+        } else if isDownloaded {
+            Button(role: .destructive, action: onDelete) {
+                Image(systemName: "trash")
+            }
+            .help("Delete download")
+        } else {
+            Button("Download", action: onDownload).disabled(disabled)
+        }
+    }
+}
+
 extension View {
     /// Card surface used across Overview cards and grouped rows.
     func cardBackground() -> some View {
