@@ -51,7 +51,7 @@ targets:
       - package: SwiftTransformers
         product: Hub
     info:
-      path: Sources/Info.plist
+      path: Sources/App/Info.plist
       properties:
         CFBundleDisplayName: Kotha
         LSUIElement: true
@@ -59,7 +59,7 @@ targets:
         NSAppleEventsUsageDescription: "Kotha pastes transcribed text into the focused app."
         NSSpeechRecognitionUsageDescription: "Kotha uses on-device speech recognition to transcribe your voice."
     entitlements:
-      path: Sources/Kotha.entitlements
+      path: Sources/App/Kotha.entitlements
       properties:
         com.apple.security.app-sandbox: false
         com.apple.security.device.audio-input: true
