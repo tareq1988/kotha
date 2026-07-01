@@ -1,0 +1,65 @@
+name: Kotha
+options:
+  bundleIdPrefix: com.tareq
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "14.0"
+
+packages:
+  FluidAudio:
+    url: https://github.com/FluidInference/FluidAudio.git
+    from: 0.12.4
+  WhisperKit:
+    url: https://github.com/argmaxinc/WhisperKit.git
+    from: 1.0.0
+  MLXExamples:
+    url: https://github.com/ml-explore/mlx-swift-examples.git
+    from: 2.29.1
+  SwiftTransformers:
+    url: https://github.com/huggingface/swift-transformers.git
+    exactVersion: 1.0.0
+
+settings:
+  base:
+    PRODUCT_BUNDLE_IDENTIFIER: com.tareq.kotha
+    MARKETING_VERSION: "0.1"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGNING_REQUIRED: "NO"
+    CODE_SIGNING_ALLOWED: "NO"
+    ENABLE_HARDENED_RUNTIME: "NO"
+
+targets:
+  Kotha:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources
+    dependencies:
+      - package: FluidAudio
+      - package: WhisperKit
+        product: WhisperKit
+      - package: MLXExamples
+        product: MLXLLM
+      - package: MLXExamples
+        product: MLXLMCommon
+      - package: SwiftTransformers
+        product: Hub
+    info:
+      path: Sources/Info.plist
+      properties:
+        CFBundleDisplayName: Kotha
+        LSUIElement: true
+        NSMicrophoneUsageDescription: "Kotha listens to your microphone to transcribe your speech into text."
+        NSAppleEventsUsageDescription: "Kotha pastes transcribed text into the focused app."
+        NSSpeechRecognitionUsageDescription: "Kotha uses on-device speech recognition to transcribe your voice."
+    entitlements:
+      path: Sources/Kotha.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.device.audio-input: true
+        com.apple.security.automation.apple-events: true
