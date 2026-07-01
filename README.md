@@ -67,6 +67,17 @@ self-signed code-signing identity once:
 `build.sh` then re-signs the installed app with that identity, so Accessibility
 (and the paste hotkeys) survive rebuilds.
 
+## Releasing
+
+Auto-updates ship via Sparkle. Cutting a release is one command:
+
+```bash
+./release.sh 1.2 "What changed"
+```
+
+It bumps the version, builds, EdDSA-signs, updates the appcast, and publishes the
+GitHub release. See [RELEASING.md](RELEASING.md) for the full process.
+
 ## First-time setup
 
 1. **Microphone** — macOS prompts on first dictation. Allow it.
