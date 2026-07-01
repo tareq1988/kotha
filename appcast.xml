@@ -8,5 +8,13 @@
         <description>Automatic updates for Kotha.</description>
         <language>en</language>
         <!-- ITEMS -->
+        <item>
+            <title>Kotha 1.1</title>
+            <pubDate>Wed, 01 Jul 2026 11:05:14 +0300</pubDate>
+            <sparkle:version>2</sparkle:version>
+            <sparkle:shortVersionString>1.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/tareq1988/kotha/releases/download/v1.1/Kotha-1.1.zip" sparkle:edSignature="Z0VX63+WEYJBYZakT1wMMD7xzfWTQY1c50yItr1KOytocQuwSMSbjsZVjeyk2HdVsb9jWNoUbIuVdybLLtJ3DA==" length="10641488" type="application/octet-stream"/>
+        </item>
     </channel>
 </rss>
