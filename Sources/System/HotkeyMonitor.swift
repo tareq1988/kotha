@@ -11,14 +11,21 @@ final class HotkeyMonitor {
     private var source: CFRunLoopSource?
     private var pressed = Set<Int64>()
 
-    // macOS virtual key codes for the right-side modifiers.
-    private let rightCommand: Int64 = 54
-    private let rightOption: Int64 = 61
+    /// key code → language. Updated live when the user reconfigures hotkeys.
+    private var mapping: [Int64: Language]
 
-    init(onPress: @escaping (Language) -> Void,
+    init(mapping: [Int64: Language],
+         onPress: @escaping (Language) -> Void,
          onRelease: @escaping (Language) -> Void) {
+        self.mapping = mapping
         self.onPress = onPress
         self.onRelease = onRelease
+    }
+
+    /// Replace the trigger keys. Runs on the main thread (same as the tap callback).
+    func updateMapping(_ mapping: [Int64: Language]) {
+        self.mapping = mapping
+        pressed.removeAll()
     }
 
     func start() {
@@ -52,9 +59,7 @@ final class HotkeyMonitor {
 
     private func handle(_ event: CGEvent) {
         let keyCode = event.getIntegerValueField(.keyboardEventKeycode)
-        guard keyCode == rightCommand || keyCode == rightOption else { return }
-
-        let lang: Language = (keyCode == rightCommand) ? .english : .bangla
+        guard let lang = mapping[keyCode] else { return }
 
         // Each flagsChanged for a modifier toggles its physical state.
         let isDown: Bool

@@ -111,6 +111,7 @@ final class AppState: ObservableObject {
         }
 
         hotkeys = HotkeyMonitor(
+            mapping:   HotkeyConfig.mapping,
             onPress:   { [weak self] lang in self?.handlePress(lang) },
             onRelease: { [weak self] lang in self?.handleRelease(lang) }
         )
@@ -118,6 +119,11 @@ final class AppState: ObservableObject {
 
         ListeningPanel.shared.start()
         Task { await loadModel() }
+    }
+
+    /// Re-read the configured trigger keys (call after the user changes them).
+    func reloadHotkeys() {
+        hotkeys?.updateMapping(HotkeyConfig.mapping)
     }
 
     private func loadModel() async {

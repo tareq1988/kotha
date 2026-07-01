@@ -15,10 +15,8 @@ struct SettingsView: View {
 
     var body: some View {
         Form {
-            Section("Language → Model") {
-                modelPicker("English  (Right ⌘)", language: .english)
-                modelPicker("Bangla  (Right ⌥)", language: .bangla)
-            }
+            languageSection(.english)
+            languageSection(.bangla)
 
             Section("Behavior") {
                 Picker("Activation", selection: $activationRaw) {
@@ -124,6 +122,20 @@ struct SettingsView: View {
         }
     }
 
+    @ViewBuilder
+    private func languageSection(_ language: Language) -> some View {
+        Section {
+            modelPicker("Model", language: language)
+            hotkeyPicker("Trigger key", language: language)
+        } header: {
+            Text(language.label)
+        } footer: {
+            if language == .bangla {
+                Text("Hold the trigger key to talk (exact behavior follows the activation mode). The two languages can't share a key.")
+            }
+        }
+    }
+
     private func modelPicker(_ title: String, language: Language) -> some View {
         let assignedID = models.assignedID(for: language)
         // Only show ready models, but keep the current selection visible so the picker isn't blank.
@@ -139,6 +151,22 @@ struct SettingsView: View {
             ForEach(options) { model in
                 Text(model.name + (models.ready(model, for: language) ? "" : "  (setup needed)"))
                     .tag(model.id)
+            }
+        }
+    }
+
+    private func hotkeyPicker(_ title: String, language: Language) -> some View {
+        let selection = Binding(
+            get: { HotkeyConfig.key(for: language) },
+            set: {
+                HotkeyConfig.setKey($0, for: language)
+                app.reloadHotkeys()
+                tick += 1   // refresh both pickers + the Language→Model titles
+            }
+        )
+        return Picker(title, selection: selection) {
+            ForEach(ModifierKey.allCases) { key in
+                Text(key.label).tag(key)
             }
         }
     }

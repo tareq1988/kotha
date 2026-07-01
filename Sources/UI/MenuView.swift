@@ -15,8 +15,8 @@ struct MenuView: View {
 
         Divider()
 
-        Text("Right ⌘ → \(models.name(for: .english))")
-        Text("Right ⌥ → \(models.name(for: .bangla))")
+        Text("\(HotkeyConfig.key(for: .english).label) → \(models.name(for: .english))")
+        Text("\(HotkeyConfig.key(for: .bangla).label) → \(models.name(for: .bangla))")
 
         Divider()
 
