@@ -70,18 +70,7 @@ struct SettingsView: View {
                           systemImage: "exclamationmark.triangle")
                         .font(.caption2).foregroundStyle(.secondary)
                 }
-                ForEach(vocabulary.terms.indices, id: \.self) { i in
-                    HStack(spacing: 6) {
-                        TextField("term", text: $vocabulary.terms[i]).textFieldStyle(.roundedBorder)
-                        Button(role: .destructive) { vocabulary.remove(at: i) } label: {
-                            Image(systemName: "minus.circle.fill").foregroundStyle(.red)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                Button { vocabulary.add() } label: {
-                    Label("Add term", systemImage: "plus")
-                }
+                VocabularyEditor()
                 Text("Brand/product names the models mishear. The on-device model replaces mishears of these with the exact term, without changing anything else.")
                     .font(.caption2).foregroundStyle(.secondary)
             }
@@ -152,6 +141,43 @@ struct SettingsView: View {
                     .tag(model.id)
             }
         }
+    }
+}
+
+// MARK: - Vocabulary editor (removable chips + inline add)
+
+private struct VocabularyEditor: View {
+    @EnvironmentObject private var vocabulary: VocabularyStore
+    @State private var newTerm = ""
+
+    private var terms: [String] { vocabulary.activeTerms }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if terms.isEmpty {
+                Text("No terms yet — add brand or product names below.")
+                    .font(.caption).foregroundStyle(.secondary)
+            } else {
+                FlowLayout(spacing: 8) {
+                    ForEach(terms, id: \.self) { term in
+                        TermChip(text: term) { vocabulary.remove(term) }
+                    }
+                }
+            }
+            HStack(spacing: 8) {
+                TextField("Add a term…", text: $newTerm)
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(add)
+                Button("Add", action: add)
+                    .disabled(newTerm.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private func add() {
+        vocabulary.add(newTerm)
+        newTerm = ""
     }
 }
 

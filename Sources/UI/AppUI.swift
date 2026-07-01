@@ -85,6 +85,60 @@ struct DownloadControl: View {
     }
 }
 
+/// A removable pill, e.g. a vocabulary term.
+struct TermChip: View {
+    let text: String
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(text).font(.callout)
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.tertiary)
+            }
+            .buttonStyle(.plain)
+            .help("Remove")
+        }
+        .padding(.leading, 10).padding(.trailing, 6).padding(.vertical, 5)
+        .background(Capsule().fill(.quinary))
+        .overlay(Capsule().strokeBorder(.quaternary, lineWidth: 1))
+    }
+}
+
+/// Wrapping "tag cloud" layout — lays subviews left-to-right, wrapping to new rows.
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth, x > 0 {
+                x = 0; y += rowHeight + spacing; rowHeight = 0
+            }
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+        return CGSize(width: proposal.width ?? x, height: y + rowHeight)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
+        for view in subviews {
+            let size = view.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX, x > bounds.minX {
+                x = bounds.minX; y += rowHeight + spacing; rowHeight = 0
+            }
+            view.place(at: CGPoint(x: x, y: y), anchor: .topLeading, proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            rowHeight = max(rowHeight, size.height)
+        }
+    }
+}
+
 extension View {
     /// Card surface used across Overview cards and grouped rows.
     func cardBackground() -> some View {

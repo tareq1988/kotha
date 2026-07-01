@@ -15,12 +15,15 @@ final class VocabularyStore: ObservableObject {
 
     init() { load() }
 
-    func add() { terms.append("") }
-
-    func remove(at index: Int) {
-        guard terms.indices.contains(index) else { return }
-        terms.remove(at: index)
+    /// Add a term, trimmed and de-duplicated (case-insensitive). No-op if blank/duplicate.
+    func add(_ term: String) {
+        let trimmed = term.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty,
+              !terms.contains(where: { $0.caseInsensitiveCompare(trimmed) == .orderedSame }) else { return }
+        terms.append(trimmed)
     }
+
+    func remove(_ term: String) { terms.removeAll { $0 == term } }
 
     /// Non-empty, trimmed terms.
     var activeTerms: [String] {
