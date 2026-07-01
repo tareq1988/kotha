@@ -107,8 +107,8 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(width: 460)
-        .frame(minHeight: 660)
+        .frame(maxWidth: 620)
+        .frame(maxWidth: .infinity)
         .onReceive(poll) { _ in tick += 1 }   // re-render to re-read permission state
     }
 

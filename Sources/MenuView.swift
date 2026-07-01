@@ -3,7 +3,6 @@ import SwiftUI
 struct MenuView: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var models: ModelManager
-    @Environment(\.openSettings) private var openSettings
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -21,20 +20,22 @@ struct MenuView: View {
 
         Divider()
 
-        Button("History…") {
-            NSApp.activate(ignoringOtherApps: true)
-            openWindow(id: "history")
-        }
+        Button("Overview…") { open(.overview) }
+        Button("History…")  { open(.history) }
+        Button("Settings…") { open(.settings) }
+            .keyboardShortcut(",", modifiers: .command)
 
-        Button("Settings…") {
-            NSApp.activate(ignoringOtherApps: true)
-            openSettings()
-        }
-        .keyboardShortcut(",", modifiers: .command)
+        Divider()
 
         Button("Quit Kotha") {
             NSApplication.shared.terminate(nil)
         }
         .keyboardShortcut("q", modifiers: .command)
+    }
+
+    private func open(_ section: AppSection) {
+        UserDefaults.standard.set(section.rawValue, forKey: "mainSection")
+        NSApp.activate(ignoringOtherApps: true)
+        openWindow(id: "main")
     }
 }

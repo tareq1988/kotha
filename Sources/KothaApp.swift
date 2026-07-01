@@ -14,17 +14,16 @@ struct KothaApp: App {
             MenuView().environmentObject(app).environmentObject(models)
         }
 
-        Settings {
-            SettingsView()
+        Window("Kotha", id: "main") {
+            MainView()
                 .environmentObject(app)
                 .environmentObject(models)
                 .environmentObject(vocabulary)
-        }
-
-        Window("Kotha — History", id: "history") {
-            HistoryView().environmentObject(history)
+                .environmentObject(history)
+                .frame(minWidth: 760, minHeight: 620)
         }
         .windowResizability(.contentMinSize)
+        .defaultSize(width: 900, height: 680)
     }
 }
 

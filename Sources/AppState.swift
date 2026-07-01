@@ -75,12 +75,19 @@ final class AppState: ObservableObject {
 
     var menuIcon: String {
         switch status {
-        case .recording:                 return "mic.fill"
+        case .recording:                 return "waveform.circle.fill"
         case .transcribing, .loadingModel: return "ellipsis.circle"
         case .refining:                  return "sparkles"
         case .success:                   return "checkmark.circle"
         case .error:                     return "exclamationmark.triangle"
-        case .idle:                      return "mic"
+        case .idle:                      return "waveform"
+        }
+    }
+
+    var isBusy: Bool {
+        switch status {
+        case .idle, .success, .error: return false
+        default:                      return true
         }
     }
 
@@ -241,6 +248,8 @@ final class AppState: ObservableObject {
             let keepOnClipboard = UserDefaults.standard.bool(forKey: "copyToClipboard")
             inserter.insert(cleaned, keepOnClipboard: keepOnClipboard)
             HistoryStore.shared.add(text: cleaned, original: trimmed, language: lang.label)
+            HistoryStore.shared.recordAudio(modelID: models.assignedID(for: lang),
+                                            seconds: Double(samples.count) / 16_000.0)
             flashSuccess(lang)
         } catch {
             if Task.isCancelled { return }          // user cancelled — already idle
