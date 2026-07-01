@@ -3,6 +3,7 @@ import SwiftUI
 struct MenuView: View {
     @EnvironmentObject private var app: AppState
     @EnvironmentObject private var models: ModelManager
+    @ObservedObject private var updater = Updater.shared
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -26,6 +27,9 @@ struct MenuView: View {
             .keyboardShortcut(",", modifiers: .command)
 
         Divider()
+
+        Button("Check for Updates…") { updater.checkForUpdates() }
+            .disabled(!updater.canCheck)
 
         Button("Quit Kotha") {
             NSApplication.shared.terminate(nil)

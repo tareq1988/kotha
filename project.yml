@@ -18,6 +18,9 @@ packages:
   SwiftTransformers:
     url: https://github.com/huggingface/swift-transformers.git
     exactVersion: 1.0.0
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle.git
+    from: 2.6.0
 
 settings:
   base:
@@ -50,6 +53,7 @@ targets:
         product: MLXLMCommon
       - package: SwiftTransformers
         product: Hub
+      - package: Sparkle
     info:
       path: Sources/App/Info.plist
       properties:
@@ -58,6 +62,10 @@ targets:
         NSMicrophoneUsageDescription: "Kotha listens to your microphone to transcribe your speech into text."
         NSAppleEventsUsageDescription: "Kotha pastes transcribed text into the focused app."
         NSSpeechRecognitionUsageDescription: "Kotha uses on-device speech recognition to transcribe your voice."
+        SUFeedURL: "https://raw.githubusercontent.com/tareq1988/kotha/main/appcast.xml"
+        SUPublicEDKey: "dHWH9EVDHeL09SIRBitm5iNE5NAe5Otlzt4CVgMxXbs="
+        SUEnableAutomaticChecks: true
+        SUScheduledCheckInterval: 86400
     entitlements:
       path: Sources/App/Kotha.entitlements
       properties:

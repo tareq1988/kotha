@@ -20,3 +20,6 @@ Kotha.xcodeproj/
 
 # Reference screenshots (local only)
 screenshots/
+
+# Release artifacts
+dist/

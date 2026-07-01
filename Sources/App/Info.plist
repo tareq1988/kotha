@@ -28,5 +28,13 @@
 	<string>Kotha listens to your microphone to transcribe your speech into text.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Kotha uses on-device speech recognition to transcribe your voice.</string>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://raw.githubusercontent.com/tareq1988/kotha/main/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>dHWH9EVDHeL09SIRBitm5iNE5NAe5Otlzt4CVgMxXbs=</string>
+	<key>SUScheduledCheckInterval</key>
+	<integer>86400</integer>
 </dict>
 </plist>
