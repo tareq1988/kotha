@@ -19,11 +19,35 @@ SIGN_TOOL="build/SourcePackages/artifacts/sparkle/Sparkle/bin/sign_update"
 
 die() { echo "✗ $1" >&2; exit 1; }
 
+# Build release notes from Conventional Commits since the last tag.
+generate_notes() {
+    local feats="" fixes="" others="" line type desc
+    while IFS= read -r line; do
+        type=$(printf '%s' "$line" | sed -E 's/^([a-z]+)(\(.*\))?!?:.*/\1/')
+        desc=$(printf '%s' "$line" | sed -E 's/^[a-z]+(\(.*\))?!?: *//')
+        case "$type" in
+            feat)                 feats="$feats- $desc"$'\n' ;;
+            fix)                  fixes="$fixes- $desc"$'\n' ;;
+            perf|refactor|revert) others="$others- $desc"$'\n' ;;
+        esac
+    done < <(git log --pretty=%s "$1")
+    [ -n "$feats" ]  && printf '### Features\n%s\n' "$feats"
+    [ -n "$fixes" ]  && printf '### Fixes\n%s\n' "$fixes"
+    [ -n "$others" ] && printf '### Other\n%s\n' "$others"
+}
+
 VERSION="${1:-}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] \
   || die "Usage: ./release.sh <version> [notes]   e.g. ./release.sh 1.2"
-NOTES="${2:-Kotha $VERSION. Existing users update automatically via Sparkle.}"
 TAG="v$VERSION"
+
+if [ -n "${2:-}" ]; then
+    NOTES="$2"
+else
+    LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+    NOTES=$(generate_notes "${LAST_TAG:+$LAST_TAG..}HEAD")
+    [ -n "$NOTES" ] || NOTES="Kotha $VERSION."
+fi
 
 # ---- pre-flight -------------------------------------------------------------
 command -v gh       >/dev/null || die "gh (GitHub CLI) not found."
@@ -84,7 +108,7 @@ PY
 # ---- commit, tag, push, release --------------------------------------------
 echo "→ Committing, tagging, pushing…"
 git add project.yml Sources/App/Info.plist "$APPCAST"
-git commit -q -m "Release $VERSION"
+git commit -q -m "chore(release): $VERSION"
 COMMITTED=1
 git tag -a "$TAG" -m "Kotha $VERSION"
 git push -q origin main

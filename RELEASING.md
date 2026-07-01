@@ -7,11 +7,13 @@ command.
 ## TL;DR
 
 ```bash
-./release.sh 1.2                       # version only
-./release.sh 1.2 "Fix paste; faster startup"   # with release notes
+./release.sh 1.2                       # notes auto-generated from commits
+./release.sh 1.2 "Fix paste; faster startup"   # or pass notes explicitly
 ```
 
-That's it. The script does everything below and prints the release URL.
+That's it. The script does everything below and prints the release URL. When you
+don't pass notes, it builds them from the [Conventional Commits](CONTRIBUTING.md)
+since the last tag, grouped into **Features** / **Fixes** / **Other**.
 
 ## What `release.sh` does
 
