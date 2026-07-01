@@ -17,3 +17,6 @@ Kotha.xcodeproj/
 # Signing artifacts (see setup-signing.sh)
 *.p12
 *.cer
+
+# Reference screenshots (local only)
+screenshots/
