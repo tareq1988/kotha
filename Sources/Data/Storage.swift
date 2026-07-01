@@ -11,7 +11,7 @@ enum AppPaths {
 }
 
 /// Serial queue backing every JSONStore write, so disk I/O never blocks the main thread.
-private let jsonStoreQueue = DispatchQueue(label: "com.tareq.kotha.jsonstore")
+private let jsonStoreQueue = DispatchQueue(label: "co.tareq.kotha.jsonstore")
 
 /// Block until all pending JSONStore writes have flushed. Call on app termination.
 func flushPendingWrites() { jsonStoreQueue.sync {} }
