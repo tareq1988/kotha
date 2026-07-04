@@ -197,6 +197,9 @@ final class AppState: ObservableObject {
         status = .recording(lang)
         do {
             try recorder.start()
+            if UserDefaults.standard.bool(forKey: "muteWhileDictating") {
+                SystemAudio.muteOutput()
+            }
         } catch {
             activeLanguage = nil
             setError("Mic: \(error.localizedDescription)")
@@ -208,6 +211,7 @@ final class AppState: ObservableObject {
         activeLanguage = nil
         toggledOn = nil
         let samples = recorder.stop()
+        SystemAudio.restoreOutput()
         micLevel = 0
 
         // Ignore taps shorter than ~0.15s
@@ -226,6 +230,7 @@ final class AppState: ObservableObject {
         transcriptionTask = nil
         if activeLanguage != nil {
             _ = recorder.stop()
+            SystemAudio.restoreOutput()
             activeLanguage = nil
             toggledOn = nil
             micLevel = 0

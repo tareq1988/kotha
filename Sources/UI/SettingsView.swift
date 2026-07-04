@@ -10,6 +10,7 @@ struct SettingsView: View {
     @State private var tick = 0   // forces permission/device re-read
     @AppStorage("activationMode") private var activationRaw = ActivationMode.hold.rawValue
     @AppStorage("copyToClipboard") private var copyToClipboard = false
+    @AppStorage("muteWhileDictating") private var muteWhileDictating = false
 
     private let poll = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
@@ -28,6 +29,7 @@ struct SettingsView: View {
                     Text(mode.help).font(.caption).foregroundStyle(.secondary)
                 }
                 Toggle("Copy dictated text to clipboard", isOn: $copyToClipboard)
+                Toggle("Mute other sounds while dictating", isOn: $muteWhileDictating)
             }
 
             Section("Local Models") {
