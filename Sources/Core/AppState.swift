@@ -40,6 +40,35 @@ enum ActivationMode: String, CaseIterable, Identifiable {
     }
 }
 
+/// Which languages vocabulary cleanup applies to.
+enum CleanupScope: String, CaseIterable, Identifiable {
+    case both
+    case english
+    case bangla
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .both:    return "English & Bangla"
+        case .english: return "English only"
+        case .bangla:  return "Bangla only"
+        }
+    }
+
+    func applies(to lang: Language) -> Bool {
+        switch self {
+        case .both:    return true
+        case .english: return lang == .english
+        case .bangla:  return lang == .bangla
+        }
+    }
+
+    static var current: CleanupScope {
+        CleanupScope(rawValue: UserDefaults.standard.string(forKey: "cleanupLanguage") ?? "") ?? .both
+    }
+}
+
 @MainActor
 final class AppState: ObservableObject {
     static let shared = AppState()
@@ -274,6 +303,7 @@ final class AppState: ObservableObject {
 
     /// Fix known terms: on-device AI for mishears + a deterministic casing fix.
     private func cleanup(_ text: String, lang: Language) async -> String {
+        guard CleanupScope.current.applies(to: lang) else { return text }
         let terms = VocabularyStore.shared.activeTerms
         guard !terms.isEmpty else { return text }
 

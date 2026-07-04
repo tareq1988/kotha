@@ -11,6 +11,7 @@ struct SettingsView: View {
     @AppStorage("activationMode") private var activationRaw = ActivationMode.hold.rawValue
     @AppStorage("copyToClipboard") private var copyToClipboard = false
     @AppStorage("muteWhileDictating") private var muteWhileDictating = false
+    @AppStorage("cleanupLanguage") private var cleanupLanguage = CleanupScope.both.rawValue
 
     private let poll = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
 
@@ -57,6 +58,11 @@ struct SettingsView: View {
 
             Section("Vocabulary cleanup") {
                 Toggle("Fix known terms with on-device AI", isOn: $aiCleanup)
+                Picker("Apply to", selection: $cleanupLanguage) {
+                    ForEach(CleanupScope.allCases) { scope in
+                        Text(scope.label).tag(scope.rawValue)
+                    }
+                }
                 Picker("Cleanup model", selection: $cleanup.selectedID) {
                     ForEach(cleanup.catalog) { model in
                         Text("\(model.name) · \(model.size)").tag(model.id)
