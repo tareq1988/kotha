@@ -313,10 +313,11 @@ final class AppState: ObservableObject {
             status = .refining(lang)
             if let corrected = try? await CleanupManager.shared.correct(text, terms: terms),
                AICleanupPrompt.isPlausible(original: text, candidate: corrected) {
-                out = corrected
+                out = AICleanupPrompt.verify(original: text, candidate: corrected, terms: terms)
             }
         }
-        return TextProcessor.canonicalize(out, terms: terms)
+        out = TextProcessor.canonicalize(out, terms: terms)   // exact spacing + casing
+        return TextProcessor.fuzzyCorrect(out, terms: terms)  // phonetic splits, e.g. "Lara Vale" → "Laravel"
     }
 
     // MARK: - Transient HUD states
