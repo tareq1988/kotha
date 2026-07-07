@@ -9,6 +9,14 @@
         <language>en</language>
         <!-- ITEMS -->
         <item>
+            <title>Kotha 1.2</title>
+            <pubDate>Tue, 07 Jul 2026 11:26:53 +0600</pubDate>
+            <sparkle:version>3</sparkle:version>
+            <sparkle:shortVersionString>1.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/tareq1988/kotha/releases/download/v1.2/Kotha-1.2.zip" sparkle:edSignature="Fo/dw8tlvLuxiQ+0n4gAwtwy9UI7LI3iWLSYMkwWpdX3farfmN8tYzl8tYp96SjTQm/+DIQ/a6bDO8j7HPaXBA==" length="10666820" type="application/octet-stream"/>
+        </item>
+        <item>
             <title>Kotha 1.1</title>
             <pubDate>Wed, 01 Jul 2026 11:05:14 +0300</pubDate>
             <sparkle:version>2</sparkle:version>
