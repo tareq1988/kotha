@@ -117,10 +117,10 @@ private struct HUDView: View {
         }
         .padding(.horizontal, 16)
         .frame(width: 280, height: 68)
-        .background(.ultraThinMaterial)
+        .background(.regularMaterial)
         .overlay(
             RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                .strokeBorder(Color.primary.opacity(0.12), lineWidth: 1)
         )
         .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
         .overlay(alignment: .topTrailing) {
@@ -145,14 +145,37 @@ private struct HUDView: View {
     // Leading badge — flat, monochrome, symbol-based
 
     @ViewBuilder private var badge: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(accent.opacity(0.16))
+        // While a session is active, show the target app's icon (like the app it inserts into);
+        // otherwise fall back to a monochrome phase symbol.
+        if showsAppContext, let icon = app.focusedApp?.icon {
+            Image(nsImage: icon)
+                .resizable()
+                .interpolation(.high)
                 .frame(width: 38, height: 38)
-            Image(systemName: symbol)
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundStyle(accent)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        } else {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(accent.opacity(0.16))
+                    .frame(width: 38, height: 38)
+                Image(systemName: symbol)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(accent)
+            }
         }
+    }
+
+    /// Phases where the HUD represents an active insertion target.
+    private var showsAppContext: Bool {
+        switch phase {
+        case .recording, .transcribing, .refining: return true
+        default:                                    return false
+        }
+    }
+
+    /// The target app's name, when known, else a phase-appropriate fallback.
+    private func title(_ fallback: String) -> String {
+        (showsAppContext ? app.focusedApp?.name : nil) ?? fallback
     }
 
     private var symbol: String {
@@ -172,19 +195,22 @@ private struct HUDView: View {
         switch phase {
         case .recording(let l):
             VStack(alignment: .leading, spacing: 5) {
-                titleRow("Listening", l)
+                titleRow(title("Listening"), l)
                 Waveform(level: CGFloat(app.micLevel), tint: accent)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         case .transcribing(let l):
             VStack(alignment: .leading, spacing: 6) {
-                titleRow("Transcribing", l)
+                titleRow(title("Transcribing"), l)
                 BouncingDots(tint: accent)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         case .refining(let l):
             VStack(alignment: .leading, spacing: 6) {
-                titleRow("Refining", l)
+                titleRow(title("Refining"), l)
                 BouncingDots(tint: accent)
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         case .success:
             VStack(alignment: .leading, spacing: 2) {
                 Text("Inserted").font(.system(size: 14, weight: .semibold))
@@ -203,14 +229,28 @@ private struct HUDView: View {
 
     private func titleRow(_ title: String, _ lang: Language) -> some View {
         HStack(spacing: 7) {
-            Text(title).font(.system(size: 14, weight: .semibold))
+            Text(title)
+                .font(.system(size: 14, weight: .semibold))
+                .lineLimit(1).truncationMode(.tail)
             Text(lang.display)
                 .font(.system(size: 10, weight: .bold))
                 .tracking(0.4)
                 .padding(.horizontal, 6).padding(.vertical, 2)
                 .background(accent.opacity(0.16), in: Capsule())
                 .foregroundStyle(accent)
+            Spacer(minLength: 10)
+            if !hovering { brand }      // hover swaps the brand for the cancel button
         }
+    }
+
+    // Trailing brand mark, echoing the target app on the left.
+    private var brand: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "waveform").font(.system(size: 11, weight: .semibold))
+            Text("Kotha").font(.system(size: 12, weight: .semibold))
+        }
+        .foregroundStyle(.secondary)
+        .transition(.opacity)
     }
 
     // Theming
@@ -232,21 +272,29 @@ private struct Waveform: View {
     let level: CGFloat
     let tint: Color
 
+    private let barWidth: CGFloat = 3
+    private let spacing: CGFloat = 3
+
     var body: some View {
-        TimelineView(.animation) { context in
-            let t = context.date.timeIntervalSinceReferenceDate
-            HStack(spacing: 3) {
-                ForEach(0..<16, id: \.self) { i in
-                    let phase = Double(i) * 0.55
-                    let wave = (sin(t * 7 + phase) + 1) / 2          // 0...1
-                    let amp = max(0.10, Double(level))
-                    let height = 4 + CGFloat(wave * amp) * 22
-                    Capsule().fill(tint.opacity(0.9))
-                        .frame(width: 3, height: height)
+        GeometryReader { geo in
+            // Fill the full available width with as many bars as fit.
+            let count = max(1, Int((geo.size.width + spacing) / (barWidth + spacing)))
+            TimelineView(.animation) { context in
+                let t = context.date.timeIntervalSinceReferenceDate
+                HStack(spacing: spacing) {
+                    ForEach(0..<count, id: \.self) { i in
+                        let phase = Double(i) * 0.55
+                        let wave = (sin(t * 7 + phase) + 1) / 2      // 0...1
+                        let amp = max(0.10, Double(level))
+                        let height = 4 + CGFloat(wave * amp) * 22
+                        Capsule().fill(tint.opacity(0.9))
+                            .frame(width: barWidth, height: height)
+                    }
                 }
+                .frame(width: geo.size.width, height: 26, alignment: .leading)
             }
-            .frame(height: 26, alignment: .center)
         }
+        .frame(height: 26)
     }
 }
 

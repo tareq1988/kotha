@@ -9,6 +9,20 @@ enum Language: String {
     var label: String { self == .english ? "English" : "Bangla" }
 }
 
+/// The frontmost application that will receive dictated text — shown in the HUD.
+struct FocusedApp {
+    let name: String
+    let icon: NSImage?
+
+    /// Read the current frontmost app, ignoring Kotha itself.
+    static var current: FocusedApp? {
+        guard let app = NSWorkspace.shared.frontmostApplication,
+              app.bundleIdentifier != Bundle.main.bundleIdentifier,
+              let name = app.localizedName else { return nil }
+        return FocusedApp(name: name, icon: app.icon)
+    }
+}
+
 enum ActivationMode: String, CaseIterable, Identifiable {
     case hold
     case toggle
@@ -87,6 +101,7 @@ final class AppState: ObservableObject {
     @Published var modelReady = false
     @Published var lastText = ""
     @Published var micLevel: Float = 0
+    @Published var focusedApp: FocusedApp?      // app that will receive the text, captured at record start
 
     private let recorder = AudioRecorder()
     let models = ModelManager.shared
@@ -223,6 +238,7 @@ final class AppState: ObservableObject {
     private func startRecording(_ lang: Language) {
         guard activeLanguage == nil else { return }       // one session at a time
         activeLanguage = lang
+        focusedApp = FocusedApp.current
         status = .recording(lang)
         do {
             try recorder.start()
