@@ -34,6 +34,7 @@ generate_notes() {
     [ -n "$feats" ]  && printf '### Features\n%s\n' "$feats"
     [ -n "$fixes" ]  && printf '### Fixes\n%s\n' "$fixes"
     [ -n "$others" ] && printf '### Other\n%s\n' "$others"
+    return 0   # a trailing empty section must not fail the function under `set -e`
 }
 
 VERSION="${1:-}"
@@ -84,7 +85,7 @@ BUILD=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$APP/Contents/Info.p
 # ---- package & sign ---------------------------------------------------------
 [ -x "$SIGN_TOOL" ] || die "sign_update not found — run ./build.sh once so SPM fetches Sparkle."
 mkdir -p "$DIST"; ZIP="$DIST/Kotha-$VERSION.zip"; rm -f "$ZIP"
-echo "→ Packaging & EdDSA-signing $ZIP…"
+echo "→ Packaging & EdDSA-signing ${ZIP}…"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 SIG=$("$SIGN_TOOL" "$ZIP")   # -> sparkle:edSignature="…" length="…"
 URL="https://github.com/$REPO/releases/download/$TAG/Kotha-$VERSION.zip"
