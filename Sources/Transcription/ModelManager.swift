@@ -47,10 +47,10 @@ final class ModelManager: DownloadManager {
         let info = ModelCatalog.info(id) ?? catalog[0]
         let engine: LocalSTTEngine
         switch info.kind {
-        case .parakeetV3:   engine = ParakeetEngine(version: .v3, folderName: "parakeet-tdt-0.6b-v3")
-        case .parakeetV2:   engine = ParakeetEngine(version: .v2, folderName: "parakeet-tdt-0.6b-v2")
+        case .parakeetV3:   engine = ParakeetEngine(version: .v3)
+        case .parakeetV2:   engine = ParakeetEngine(version: .v2)
         case .whisperTurbo: engine = WhisperEngine()
-        default:            engine = ParakeetEngine(version: .v3, folderName: "parakeet-tdt-0.6b-v3")
+        default:            engine = ParakeetEngine(version: .v3)
         }
         localEngines[id] = engine
         return engine

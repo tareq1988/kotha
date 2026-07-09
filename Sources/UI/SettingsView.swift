@@ -38,11 +38,13 @@ struct SettingsView: View {
                     LocalModelRow(model: model)
                 }
                 HStack {
-                    Text("Stored in ~/Library/Application Support/Kotha/Models")
+                    Text("Parakeet models are shared with other apps in ~/Library/Application Support/FluidAudio/Models")
                         .font(.caption2).foregroundStyle(.secondary)
                     Spacer()
                     Button {
-                        NSWorkspace.shared.open(ModelStorage.root)
+                        let dir = ModelStorage.fluidAudioShared
+                        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+                        NSWorkspace.shared.open(dir)
                     } label: {
                         Label("Open in Finder", systemImage: "folder")
                     }

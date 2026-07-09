@@ -68,12 +68,18 @@ enum ModelCatalog {
 // MARK: - Storage
 
 enum ModelStorage {
-    /// Kotha-owned models directory: ~/Library/Application Support/Kotha/Models
+    /// Kotha-owned models directory: ~/Library/Application Support/Kotha/Models (WhisperKit).
     static let root: URL = {
         let dir = AppPaths.support.appendingPathComponent("Models", isDirectory: true)
         try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir
     }()
+
+    /// FluidAudio's shared models directory (~/Library/Application Support/FluidAudio/Models),
+    /// reused across FluidAudio apps (Hex, Spokenly). Parakeet models live here.
+    static var fluidAudioShared: URL {
+        AsrModels.defaultCacheDirectory(for: .v3).deletingLastPathComponent()
+    }
 }
 
 // MARK: - Engine abstraction
@@ -90,16 +96,15 @@ protocol LocalSTTEngine: AnyObject {
 
 final class ParakeetEngine: LocalSTTEngine {
     private let version: AsrModelVersion
-    private let folderName: String          // on-disk repo folder, for deletion
     private var manager: AsrManager?
 
-    /// Shared parent passed to FluidAudio; it places each version in its own repo subfolder.
-    private var slot: URL { ModelStorage.root.appendingPathComponent("parakeet") }
-    private var modelDir: URL { ModelStorage.root.appendingPathComponent(folderName) }
+    /// FluidAudio's shared model location (~/Library/Application Support/FluidAudio/Models/…),
+    /// so Parakeet models are reused across FluidAudio apps (Hex, Spokenly) instead of
+    /// re-downloaded into Kotha's private folder.
+    private var slot: URL { AsrModels.defaultCacheDirectory(for: version) }
 
-    init(version: AsrModelVersion, folderName: String) {
+    init(version: AsrModelVersion) {
         self.version = version
-        self.folderName = folderName
     }
 
     var isDownloaded: Bool { AsrModels.modelsExist(at: slot, version: version) }
@@ -127,8 +132,8 @@ final class ParakeetEngine: LocalSTTEngine {
 
     func delete() throws {
         manager = nil
-        if FileManager.default.fileExists(atPath: modelDir.path) {
-            try FileManager.default.removeItem(at: modelDir)
+        if FileManager.default.fileExists(atPath: slot.path) {
+            try FileManager.default.removeItem(at: slot)
         }
     }
 }
